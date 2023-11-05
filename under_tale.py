@@ -28,6 +28,9 @@ class Explanation(pg.sprite.Sprite):
         else:
             self.img = self.font.render(f"{self.str}", True, self.color)
         self.surface.blit(self.img, lst)
+
+    def color_update(self, color:tuple):
+        self.color = color
     
     
 
@@ -70,15 +73,17 @@ def main():
     mode = "standard" # modeの初期化
     cmd_select = 0
     
-    flag = False
     fight_ex = Explanation("たたかうFight")
-    act_ex = Explanation("act")
+    ex_2 = Explanation("")
     item_ex = Explanation("item")
+    ex_select = 0
+    flag = False
+    run_point = 0
 
     while True:
         screen.blit(sikaku1, (200, 200))
         fight_ex.blit(screen,(230, 230))
-        # act_ex.blit(screen,(230, 230))
+        ex_2.blit(screen,(230, 280))
         # item_ex.blit(screen,(230, 230))
         for event in pg.event.get():
             if event.type == pg.KEYDOWN and event.key == pg.K_RIGHT and mode == "standard":
@@ -91,33 +96,102 @@ def main():
                     cmd_select = 0
                 else:
                     cmd_select -= 1
-            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and mode == "standard":
-                if cmd_select == 0:
-                    mode = "FIGHT"
-                    fight_ex.str = "たたかうFight"
-                    screen.blit(sikaku1, (200, 200))
-                    fight_ex.update(screen, flag=False)
-                if cmd_select == 1:
-                    mode = "ACT"
-                    fight_ex.str = "act"
-                    screen.blit(sikaku1, (200, 200))
-                    # pg.draw.rect(sikaku1, (0, 0, 0), (5, 5, 390, 190))
-                    fight_ex.update(screen, flag=False)
-                    # act_ex.update(screen, flag=False)
-                if cmd_select == 2:
-                    mode = "ITEM"
-                    fight_ex.str = "item"
-                    screen.blit(sikaku1, (200, 200))
-                    fight_ex.update(screen, flag=False)
-                    # item_ex.update(screen, flag=False)
-                if cmd_select == 3:
-                    mode = "MERCY"
-                    fight_ex.str = "mercy"
-                    screen.blit(sikaku1, (200, 200))
-                    fight_ex.update(screen, flag=False)
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
+                if mode == "standard":
+                    if cmd_select == 0:
+                        mode = "FIGHT"
+                        fight_ex.str = "たたかうFight"
+                        ex_2.str = ""
+                        fight_ex.update(screen, flag=False)
+                        ex_select = 0
+                        continue
+                    if cmd_select == 1:
+                        mode = "ACT"
+                        fight_ex.str = "act"
+                        ex_2.str = "act2"
+                        fight_ex.update(screen, flag=False)
+                        ex_2.update(screen, flag=False)
+                        ex_select = 0
+                        continue
+                    if cmd_select == 2:
+                        mode = "ITEM"
+                        fight_ex.str = "item"
+                        ex_2.str = ""
+                        fight_ex.update(screen, flag=False)
+                        ex_2.update(screen, flag=False)
+                        ex_select = 0
+                        continue
+                    if cmd_select == 3:
+                        mode = "MERCY"
+                        fight_ex.str = "escape"
+                        ex_2.str = "let escape"
+                        fight_ex.update(screen, flag=False)
+                        ex_2.update(screen, flag=False)
+                        ex_select = 0
+                        continue
+                if mode == "FIGHT":
+                    if ex_select == 0:
+                        pass # 戦闘移行用if文
+
+                if mode == "ACT":
+                    if ex_select == 0:
+                        run_point += 20
+                        mode = "avoid"
+                        pg.draw.rect(fight_ex.surface, (0, 0, 0), (0, 0, 250, 50))
+                        pg.draw.rect(ex_2.surface, (0, 0, 0), (0, 0, 250, 50))
+                    if ex_select == 1:
+                        run_point += 30
+                        mode = "avoid"
+                        pg.draw.rect(fight_ex.surface, (0, 0, 0), (0, 0, 250, 50))
+                        pg.draw.rect(ex_2.surface, (0, 0, 0), (0, 0, 250, 50))
+
+                if mode == "ITEM": # itemの使用
+                    if ex_select == 0:
+                        mode = "avoid"
+                        pg.draw.rect(fight_ex.surface, (0, 0, 0), (0, 0, 250, 50))
+                        pg.draw.rect(ex_2.surface, (0, 0, 0), (0, 0, 250, 50))
+
+                if mode == "MERCY":
+                    if ex_select == 0:
+                        pg.draw.rect(fight_ex.surface, (0, 0, 0), (0, 0, 250, 50))
+                        pg.draw.rect(ex_2.surface, (0, 0, 0), (0, 0, 250, 50))
+                        fight_ex.str = "you run away"
+                        ex_2.str = ""
+                        fight_ex.color_update(white)
+                        fight_ex.update(screen, flag=False)
+                        ex_2.update(screen, flag=False)
+                        flag = True
+                        fight_ex.blit(screen,(230, 230))
+                        ex_2.blit(screen,(230, 280))
+
+                    if ex_select == 1 and run_point >= 50:
+                        pg.draw.rect(fight_ex.surface, (0, 0, 0), (0, 0, 250, 50))
+                        pg.draw.rect(ex_2.surface, (0, 0, 0), (0, 0, 250, 50))
+                        fight_ex.str = "enemy run away"
+                        ex_2.str = ""
+                        fight_ex.color_update(white)
+                        fight_ex.update(screen, flag=False)
+                        ex_2.update(screen, flag=False)
+                        flag = True
+                        fight_ex.blit(screen,(230, 230))
+                        ex_2.blit(screen,(230, 280))
+
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE and mode != "standard":
                 mode = "standard"
-                flag = True
+                fight_ex.color_update(white)
+                ex_2.color_update(white)
+            if event.type == pg.KEYDOWN and event.key == pg.K_UP:
+                if mode  == "MERCY" or mode == "ACT":
+                    if ex_select == 0:
+                        ex_select = 0
+                    else:
+                        ex_select -= 1
+            if event.type == pg.KEYDOWN and event.key == pg.K_DOWN:
+                if mode == "MERCY" or mode == "ACT":
+                    if ex_select == 1:
+                        ex_select = 1
+                    else:
+                        ex_select += 1
             if event.type == pg.QUIT:
                 return 0
             
@@ -138,22 +212,33 @@ def main():
         else:
             mercy.color_update(white)
 
-        # if mode != "FIGHT":
-        #     # print(mode)
-        #     # fight_ex.str = ""
-        #     fight_ex.update(screen)
+        if mode == "MERCY" or mode == "ACT":
+            if ex_select == 0:
+                fight_ex.color_update(yellow)
+                ex_2.color_update(white)
+            if ex_select == 1:
+                fight_ex.color_update(white)
+                ex_2.color_update(yellow)
 
-        if mode != "standard":
-            # fight_ex.blit(screen,(230, 230))
-            # fight_ex.surface.fill((0,0,0))
+        if mode != "standard" and mode != "avoid":
             pg.draw.rect(fight_ex.surface, (0, 0, 0), (0, 0, 250, 50))
             fight_ex.update(screen, flag=False)
+            pg.draw.rect(ex_2.surface, (0, 0, 0), (0, 0, 250, 50))
+            ex_2.update(screen, flag=False)
 
         if mode == "standard":
             # screen.blit(sikaku1, (200, 200))
             pg.draw.rect(fight_ex.surface, (0, 0, 0), (0, 0, 250, 50))
-            flag = False
-            # pg.draw.rect(sikaku1, (0, 0, 0), (5, 5, 390, 190))
+            pg.draw.rect(ex_2.surface, (0, 0, 0), (0, 0, 250, 50))
+
+        if mode == "avoid": # 敵の攻撃をよける
+            mode = "standard"
+
+        if flag:
+            if mode == "end":
+                time.sleep(1)
+                return
+            mode = "end"
 
         pg.display.update()
         fight.update(screen)
