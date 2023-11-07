@@ -364,6 +364,10 @@ class Beam(pg.sprite.Sprite):
         self.rect.center = (pos_x, pos_y)
         self.mask = pg.mask.from_surface(self.image)
         self.beam_time = tmr + 50
+        beam_sound = load_sound("ビーム砲2.mp3")
+        if pg.mixer:
+            beam_sound.set_volume(0.4)
+            beam_sound.play()
 
     def update(self, tmr):
         """
@@ -483,6 +487,7 @@ def main():
     dead_flag = False
     enemy_dead_flag = False
     pressing = False
+    attacked = False
 
 
     tmr = 0
@@ -585,16 +590,21 @@ def main():
                 pressing = True
 
             if not(pressing) and event.type == pg.KEYDOWN and event.key == pg.K_RETURN and mode == "ITEM":
+                cure_sound = load_sound("パワーアップ.mp3")
                 if ex_select == 0:
-                    if item1_stock != 0:
+                    if item1_stock > 0:
+                        if pg.mixer:
+                            cure_sound.play()
                         hp_bar_green.width += 50
                         item1_stock -= 1
                         mode = "avoid"
 
                 elif ex_select == 1:
-                    if item2_stock != 0:
+                    if item2_stock > 0:
+                        if pg.mixer:
+                            cure_sound.play()
                         hp_bar_green.width += 70
-                        item1_stock -= 1
+                        item2_stock -= 1
                         mode = "avoid"
                 pressing = True
             
@@ -639,11 +649,11 @@ def main():
             if not(pressing) and event.type == pg.KEYDOWN and event.key == pg.K_RETURN and mode == "ACT":
                 if ex_select == 0:
                     action_txt = random.choice(["???「どうしてなの？」", "???「なんであなただけ！」", "???「...」", "* きょうみがないようだ"])
-                    friendly_point += random.choice([5, 10, 15, 20, 25, 30])
+                    friendly_point += random.choice([5, 10, 15, 20])
                     mode = "TXT"
                 if ex_select == 1:
                     action_txt = random.choice(["* きくみみをもたない", "* さらににらまれた", "* すきがない", "* あっちょんぶりけ", "???「うるさい！」"])
-                    friendly_point += random.choice([5, 10, 15, 20, 25, 30])
+                    friendly_point += random.choice([5, 10, 15, 20])
                     mode = "TXT"
                 pressing = True
 
@@ -655,6 +665,7 @@ def main():
                 screen.fill((0, 0, 0))
                 enemy_hp -= attack_damage
                 friendly_point -= 20
+                attacked = True
                 attack_tmr = tmr
                 if enemy_hp < 0:
                     action_txt = "??? 「ありがとう」"
@@ -772,9 +783,10 @@ def main():
 
         if mode == "avoid":
             pg.draw.rect(bg, (0, 0, 0), (150, 100, 100, 100))
-            if tmr < attack_tmr + 100:
-                damage_txt.fonto = pg.font.Font(None, 100)
-                damage_txt.update(bg, (150, 100), f"{attack_damage}")
+            if attacked:
+                if tmr < attack_tmr + 100:
+                    damage_txt.fonto = pg.font.Font(None, 100)
+                    damage_txt.update(bg, (150, 100), f"{attack_damage}")
             screen.blit(bg, (0, 0))
 
         #ここからhpクラスオブジェクトを更新
@@ -859,12 +871,21 @@ def main():
 
             if len(pg.sprite.spritecollide(player, flowers, True)) != 0:
                 hp_bar_green.width -= 2
+                hit_sound = load_sound("ショット命中.mp3")
+                if pg.mixer:
+                    hit_sound.play()
             if len(pg.sprite.spritecollide(player, atk_pl, True)) != 0:
                 hp_bar_green.width -= 5
+                hit_sound = load_sound("ショット命中.mp3")
+                if pg.mixer:
+                    hit_sound.play()
 
             for beam in beams:
                 if pg.sprite.collide_mask(player, beam):
                     hp_bar_green.width -= 10
+                    hit_sound = load_sound("ショット命中.mp3")
+                    if pg.mixer:
+                        hit_sound.play()
                     beam.kill()
 
             flowers.update()
